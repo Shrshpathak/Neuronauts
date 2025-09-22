@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚀 MAITRI Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles2.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <header>
+    <h1>🚀 MAITRI</h1>
+    <nav>
+      <a href="#">Dashboard</a>
+      <a href="{{ url_for('index') }}">Reports</a>
+      <a href="#">Settings</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Left Panel -->
+    <div class="card emotion-detection">
+      <h2>Emotion Detection</h2>
+      <img src="https://imgs.search.brave.com/-U4OGHUNMgCBSQFRrLRw-0XGn3vnUyqeCsvTyWWGoRo/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/bmFzYS5nb3Yvd3At/Y29udGVudC91cGxv/YWRzLzIwMjMvMTAv/aXNzMDcwZTAwMjAy/OS5qcGc_dz0xMDI0" alt="Astronaut">
+      <h2>Mood Meter</h2>
+      <div class="mood-meter">
+        <canvas id="moodChart"></canvas>
+        <p style="margin-top: 30px;">VOICE DETECTION: HIGH</p>
+      </div>
+    </div>
+
+    <!-- Middle Panel (Chatbot) -->
+    <div class="card health-monitor">
+      <h2>Personalized Assistant</h2>
+      <div id="chat-window" style="height: 480px; overflow-y: auto; border: 1px solid #444; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: rgba(0,0,0,0.4); color: #fff;">
+        <div class="in"><b> 🤖🤔</b> Hello 👋 I’m your MAITRI assistant. How can I help?</div>
+      </div>
+      <input type="text" id="chat-input" placeholder="Type your message and press Enter..." 
+             style="width: 95%; padding: 10px; border-radius: 5px; border: none; outline: none;">
+    </div>
+
+    <!-- Right Panel -->
+    <div class="card">
+      <h2>Alert System</h2>
+      <div class="alert">
+        ⚠️<br>
+        <h3>HIGH</h3>
+        <p>Severe Anxiety</p>
+      </div>
+
+      <div class="metrics">
+        <canvas id="heartRateChart"></canvas>
+        <p>Heart Rate</p>
+        <canvas id="bpChart"></canvas>
+        <p>Blood Pressure</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mood Meter Chart
+    new Chart(document.getElementById("moodChart"), {
+      type: "pie",
+      data: {
+        labels: ["Happy", "Sad", "Fatigue"],
+        datasets: [{
+          data: [30, 40, 30],
+          backgroundColor: ["#4caf50", "#ff9800", "#f44336"]
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: "#fff" } } }
+      }
+    });
+
+    // Heart Rate Doughnut with %
+    new Chart(document.getElementById("heartRateChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Heart Rate", "Remaining"],
+        datasets: [{
+          data: [72, 150-72],
+          backgroundColor: ["#03a9f4", "#1c3457"]
+        }]
+      },
+      options: {
+        cutout: "70%",
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false },
+          datalabels: {
+            color: "#fff",
+            formatter: (value, ctx) => {
+              let sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              let percentage = (value / sum * 100).toFixed(0)+"%";
+              return percentage;
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    // Blood Pressure Doughnut with %
+    new Chart(document.getElementById("bpChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Systolic/Diastolic", "Remaining"],
+        datasets: [{
+          data: [118, 200-118],
+          backgroundColor: ["#ff5722", "#1c3457"]
+        }]
+      },
+      options: {
+        cutout: "70%",
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false },
+          datalabels: {
+            color: "#fff",
+            formatter: (value, ctx) => {
+              let sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              let percentage = (value / sum * 100).toFixed(0)+"%";
+              return percentage;
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    const input = document.getElementById("chat-input");
+  const chatWindow = document.getElementById("chat-window");
+
+  input.addEventListener("keypress", async function (e) {
+    if (e.key === "Enter") {
+      const text = input.value.trim();
+      if (!text) return;
+
+      // Show user message
+      const userDiv = document.createElement("div");
+      userDiv.innerHTML = `<b>You:</b> ${text}`;
+      chatWindow.appendChild(userDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      input.value = "";
+
+      // Show "thinking"
+      const botDiv = document.createElement("div");
+      botDiv.innerHTML = "<b>Bot:</b> Thinking...";
+      chatWindow.appendChild(botDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+
+      try {
+        // ✅ Call Flask backend API
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+
+        const data = await res.json();
+        let reply = data.reply || "⚠️ No response from chatbot.";
+
+        botDiv.innerHTML = `<b>Bot:</b> ${reply}`;
+      } catch (err) {
+        botDiv.innerHTML = "<b>Bot:</b> ⚠️ Error connecting to chatbot.";
+      }
+
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+  });
+  </script>
+</body>
+</html>

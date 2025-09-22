@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Symptom Checker</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>🚀 MAITRI - Symptom Checker</h1>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('emotions') }}">Emotions</a>
+            <a href="{{ url_for('symptoms') }}">Symptoms</a>
+        </nav>
+    </header>
+
+    <div class="card">
+        <h2>Symptom Checker</h2>
+        <input type="text" id="symptomInput" placeholder="Enter symptoms">
+        <button onclick="submitSymptom()">Predict</button>
+        <p id="symptomResult"></p>
+    </div>
+
+    <script>
+        async function submitSymptom() {
+            const symptom = document.getElementById('symptomInput').value;
+            const res = await fetch('/api/symptom', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptom })
+            });
+            const data = await res.json();
+            document.getElementById('symptomResult').innerText = data.result;
+        }
+    </script>
+</body>
+
+</html>

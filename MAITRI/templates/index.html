@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Maitri 🚀</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>🚀 MAITRI</h1>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{}">Emotions</a>
+            <a href="{}">Symptoms</a>
+        </nav>
+    </header>
+
+    <div class="dashboard">
+        <div class="card">
+            <h2>Heartbeat</h2>
+            <canvas id="heartbeatChart"></canvas>
+            <p id="heartbeatValue">-- BPM</p>
+        </div>
+
+        <div class="card">
+            <h2>Oxygen Level</h2>
+            <canvas id="oxygenChart"></canvas> <!-- Oxygen level chart -->
+            <p id="oxygenValue">-- %</p>
+        </div>
+
+        <div class="card">
+            <h2>Blood Pressure</h2>
+            <canvas id="bpChart"></canvas> <!-- Blood pressure chart -->
+            <p id="bpValue">-- / -- mmHg</p>
+        </div>
+
+        <div class="card">
+            <h2>Body Temperature</h2>
+            <canvas id="tempChart"></canvas> <!-- Temperature chart -->
+            <p id="tempValue">-- °C</p>
+        </div>
+
+        <div class="card">
+            <h2>Emotion Detector</h2>
+            <p id="emotionValue">Detecting...</p>
+        </div>
+
+        <div class="card">
+            <h2>Symptom Checker</h2>
+            <input type="text" id="symptomInput" placeholder="Enter symptoms">
+            <button onclick="submitSymptom()">Predict</button>
+            <p id="symptomResult"></p>
+        </div>
+    </div>
+
+    <div id="alertBox" class="alert" style="display:none;"></div>
+
+    <script>
+        const ctxHeartbeat = document.getElementById('heartbeatChart').getContext('2d');
+        const ctxOxygen = document.getElementById('oxygenChart').getContext('2d');
+        const ctxBP = document.getElementById('bpChart').getContext('2d');
+        const ctxTemp = document.getElementById('tempChart').getContext('2d');
+
+        const heartbeatChart = new Chart(ctxHeartbeat, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{ label: 'Heartbeat (BPM)', borderColor: 'red', data: [], fill: false }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { suggestedMin: 50, suggestedMax: 150 }
+                }
+            }
+        });
+
+        const oxygenChart = new Chart(ctxOxygen, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{ label: 'Oxygen Level (%)', borderColor: 'green', data: [], fill: false }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { suggestedMin: 80, suggestedMax: 100 }
+                }
+            }
+        });
+
+        const bpChart = new Chart(ctxBP, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{ label: 'Blood Pressure (mmHg)', borderColor: 'blue', data: [], fill: false }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { suggestedMin: 80, suggestedMax: 180 }
+                }
+            }
+        });
+
+        const tempChart = new Chart(ctxTemp, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{ label: 'Body Temperature (°C)', borderColor: 'orange', data: [], fill: false }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { suggestedMin: 36, suggestedMax: 42 }
+                }
+            }
+        });
+
+        // Fetch vitals from Flask API
+        async function fetchVitals() {
+            const res = await fetch('/api/vitals');
+            const data = await res.json();
+
+            document.getElementById('heartbeatValue').innerText = data.heartbeat + " BPM";
+            document.getElementById('oxygenValue').innerText = data.oxygen + " % SpO₂";
+            document.getElementById('bpValue').innerText = data.bp + " mmHg";
+            document.getElementById('tempValue').innerText = data.temp + " °C";
+
+            heartbeatChart.data.labels.push('');
+            heartbeatChart.data.datasets[0].data.push(data.heartbeat);
+            oxygenChart.data.labels.push('');
+            oxygenChart.data.datasets[0].data.push(data.oxygen);
+            bpChart.data.labels.push('');
+            bpChart.data.datasets[0].data.push(data.bp);
+            tempChart.data.labels.push('');
+            tempChart.data.datasets[0].data.push(data.temp);
+
+            if (heartbeatChart.data.labels.length > 15) {
+                heartbeatChart.data.labels.shift();
+                heartbeatChart.data.datasets[0].data.shift();
+            }
+            if (oxygenChart.data.labels.length > 15) {
+                oxygenChart.data.labels.shift();
+                oxygenChart.data.datasets[0].data.shift();
+            }
+            if (bpChart.data.labels.length > 15) {
+                bpChart.data.labels.shift();
+                bpChart.data.datasets[0].data.shift();
+            }
+            if (tempChart.data.labels.length > 15) {
+                tempChart.data.labels.shift();
+                tempChart.data.datasets[0].data.shift();
+            }
+
+            heartbeatChart.update();
+            oxygenChart.update();
+            bpChart.update();
+            tempChart.update();
+
+            let alertText = "";
+            if (data.oxygen < 92) alertText += "⚠ Oxygen Low! ";
+            if (data.heartbeat > 100) alertText += "⚠ High Heart Rate! ";
+            if (data.temp > 38) alertText += "⚠ Fever! ";
+            document.getElementById('alertBox').innerText = alertText;
+            document.getElementById('alertBox').style.display = alertText ? "block" : "none";
+
+            // Call emotion prediction API
+            const features = [0.5, 0.2, 0.1]; // Dummy features for now
+            fetch("/api/predict_emotion", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ features })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Predicted Emotion:", data.emotion);
+                    document.getElementById("emotionValue").innerText = data.emotion; // Fix emotion value
+                });
+        }
+
+        // Symptom checker
+        async function submitSymptom() {
+            const symptom = document.getElementById('symptomInput').value;
+            const res = await fetch('/api/symptom', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptom })
+            });
+            const data = await res.json();
+            document.getElementById('symptomResult').innerText = data.result;
+        }
+
+        setInterval(fetchVitals, 3000);
+    </script>
+</body>
+
+</html>

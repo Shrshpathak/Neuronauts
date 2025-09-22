@@ -1,0 +1,261 @@
+body {
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(ellipse at bottom, #1b2a47 0%, #000 100%);
+  color: white;
+  overflow-x: hidden;
+}
+
+/* Starry background */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('https://www.transparenttextures.com/patterns/stardust.png');
+  opacity: 0.25;
+  animation: twinkle 6s infinite alternate;
+  z-index: -1;
+}
+@keyframes twinkle {
+  from { opacity: 0.2; }
+  to { opacity: 0.5; }
+}
+
+/* Navbar */
+header {
+  background: rgba(0, 0, 0, 0.85);
+  padding: 20px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #00e6ff;
+  box-shadow: 0 0 20px rgba(0, 230, 255, 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header h1 {
+  color: #00e6ff;
+  text-shadow: 0 0 15px #00e6ff;
+  font-size: 1.8em;
+  letter-spacing: 2px;
+  margin: 0;
+}
+nav a {
+  margin: 0 20px;
+  color: #00e6ff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+  text-transform: uppercase;
+}
+nav a:hover {
+  color: #fff;
+  text-shadow: 0 0 10px #00e6ff;
+}
+
+/* Dashboard Grid */
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  width: 100%;
+  max-width: 1450px;
+  margin: 20px auto;
+  padding: 15px;
+}
+
+/* Card Style */
+.card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 230, 255, 0.4);
+  border: 1px solid rgba(0, 230, 255, 0.4);
+  transition: transform 0.3s, box-shadow 0.3s ease-out;
+  text-align: center;
+  height: 580px;
+}
+.card:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 230, 255, 0.6);
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 20px;
+  color: #00e6ff;
+  margin-bottom: 15px;
+}
+
+
+img{
+    width: 280px;
+    height: 230px;
+}
+
+/* Header Card */
+.header {
+  grid-column: span 3;
+  text-align: center;
+}
+.header h1 {
+  font-size: 32px;
+  margin: 10px 0;
+}
+.header p {
+  color: #aab6c5;
+  font-size: 16px;
+}
+
+/* Emotion Detection */
+.emotion-detection img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.mood-meter {
+  margin-top: 20px;
+  text-align: center;
+}
+.mood-meter canvas {
+  max-width: 200px; /* Reduced from 270px */
+  margin: auto;
+}
+
+/* Physical Health Monitoring */
+.health-monitor input {
+  width: 95%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 16px;
+}
+.health-monitor input:focus {
+  border: 2px solid #00e6ff;
+  box-shadow: 0 0 12px #00e6ff;
+}
+.health-monitor button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: linear-gradient(90deg, #00e6ff, #007bff);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 0 15px #00e6ffaa;
+  transition: 0.3s;
+}
+.health-monitor button:hover {
+  background: linear-gradient(90deg, #007bff, #00e6ff);
+  box-shadow: 0 0 25px #00e6ff;
+  transform: scale(1.05);
+}
+
+.chat-box {
+  margin-top: 15px;
+  background: rgba(0, 230, 255, 0.15);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: 1px solid rgba(0,230,255,0.3);
+}
+
+/* Alert System */
+.alert {
+  background: rgba(255, 50, 50, 0.9);
+  padding: 5px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(255, 50, 50, 0.6);
+}
+.alert h3 {
+  margin: 5px 0;
+  color: white;
+  text-shadow: 0 0 15px red;
+}
+
+/* Health Metrics */
+.metrics {
+  margin-top: 20px;
+  text-align: center;
+}
+.metrics canvas {
+  max-width: 160px; /* Reduced from 200px */
+  margin: 10px auto;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  header h1 {
+    font-size: 1.5em;
+  }
+
+  nav a {
+    margin: 0 10px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .mood-meter canvas,
+  .metrics canvas {
+    max-width: 150px; /* Adjusted for mobile */
+  }
+}
+
+
+/* Chat Window */
+#chat-window {
+  height: 500px;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: rgba(0, 230, 255, 0.08);
+  border: 1px solid rgba(0, 230, 255, 0.4);
+  box-shadow: inset 0 0 15px rgba(0, 230, 255, 0.3);
+  font-size: 14px;
+  text-align: left;
+  color: #fff;
+}
+
+/* Chat Input */
+#chat-input {
+    width: 55%;
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+}
+#chat-input:focus {
+    border: 2px solid #00e6ff;
+    box-shadow: 0 0 12px #00e6ff;
+}
+
+.in{
+    color: red;
+}
