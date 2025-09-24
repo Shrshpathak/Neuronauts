@@ -3,10 +3,9 @@ from tensorflow.keras.models import load_model
 from keras.models import Sequential
 from keras.layers import Dense, Conv1D, MaxPooling1D, Flatten, Dropout
 
-# Load FER model (video)
+
 fer_model = load_model(r"E:\internal_hackathon\models\video.h5")
 
-# Rebuild audio model architecture
 audio_model = Sequential([
     Conv1D(256, 5, 1, 'same', activation='relu', input_shape=(162, 1)),
     MaxPooling1D(5, 2, 'same'),
@@ -23,13 +22,12 @@ audio_model = Sequential([
     Dense(8, activation='softmax')
 ])
 
-# Load weights only
+
 audio_model.load_weights(r"E:\internal_hackathon\models\voice.h5")
 
-# Emotion labels (7 classes only)
+
 emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
-# ✅ Short-term memory to avoid repetition
 last_emotion = None
 
 def get_video_input(shared_frame):
@@ -73,7 +71,7 @@ def predict_emotion(shared_frame):
         return {"error": "Both webcam and mic failed"}
 
     try:
-        # Only audio available
+        
         if video_input is None:
             audio_probs = audio_model.predict(audio_input)[0][:7]
             print("Audio probs:", audio_probs)
@@ -92,7 +90,7 @@ def predict_emotion(shared_frame):
                 "audio_probs": audio_probs.tolist()
             }
 
-        # Only video available
+        
         if audio_input is None:
             video_probs = fer_model.predict(video_input)[0]
             print("Video probs:", video_probs)
@@ -111,7 +109,7 @@ def predict_emotion(shared_frame):
                 "video_probs": video_probs.tolist()
             }
 
-        # Both available — fusion
+        
         video_probs = fer_model.predict(video_input)[0]
         audio_probs = audio_model.predict(audio_input)[0][:7]
         print("Video probs:", video_probs)
@@ -124,7 +122,7 @@ def predict_emotion(shared_frame):
         top_emotion = emotion_labels[top_idx]
         confidence = float(fused_probs[top_idx])
 
-        # ✅ Repetition break logic
+        
         if top_emotion == last_emotion and confidence < 0.6:
             print(f"⚠️ Repeated emotion '{top_emotion}' detected. Switching to next best.")
             top_idx = sorted_indices[1]
@@ -152,4 +150,5 @@ def predict_emotion(shared_frame):
     except Exception as e:
         print("Fusion error:", e)
         traceback.print_exc()
+
         return {"error": f"Fusion failed: {str(e)}"}
