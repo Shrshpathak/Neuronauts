@@ -4,9 +4,9 @@ from fusion import predict_emotion
 
 app = Flask(__name__)
 
-# ✅ Shared camera instance and frame buffer
+
 stream_camera = cv2.VideoCapture(0)
-latest_frame = None  # Global frame for prediction
+latest_frame = None  
 
 def gen_frames():
     global latest_frame
@@ -15,7 +15,7 @@ def gen_frames():
         if not success:
             time.sleep(0.1)
             continue
-        latest_frame = frame.copy()  # ✅ Save frame for fusion.py
+        latest_frame = frame.copy() 
         ret, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
         time.sleep(0.05)
@@ -122,4 +122,5 @@ def chat():
         return jsonify({"reply": f"⚠️ Error: {str(e)}"}), 500
 
 if __name__ == "__main__":
+
     app.run(debug=True)
