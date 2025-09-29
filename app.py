@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request, jsonify, Response
-import random, joblib, numpy as np, requests, os, cv2, time
-from fusion import predict_emotion
+import random, numpy as np, cv2, time
+from fusion import predict_emotion, get_chatbot_reply, set_input_mode
 
 app = Flask(__name__)
 
 
 stream_camera = cv2.VideoCapture(0)
-latest_frame = None  
+latest_frame = None
 
 def gen_frames():
     global latest_frame
@@ -15,7 +15,7 @@ def gen_frames():
         if not success:
             time.sleep(0.1)
             continue
-        latest_frame = frame.copy() 
+        latest_frame = frame.copy()
         ret, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
         time.sleep(0.05)
@@ -60,9 +60,12 @@ emotion_history = []
 @app.route("/api/predict_emotion", methods=["POST"])
 def predict_emotion_api():
     print("🔍 Predicting emotion...")
-    result = predict_emotion(latest_frame)  # ✅ Pass shared frame
-    if "error" in result:
-        print("❌ Prediction error:", result["error"])
+    set_input_mode("emotion")  
+    result = predict_emotion(latest_frame)
+
+    if "error" in result and result.get("emotion") == "NoInput":
+        return jsonify(result), 200  
+    elif "error" in result:
         return jsonify({
             "emotion": "⚠️ Error",
             "confidence": 0,
@@ -100,27 +103,13 @@ def symptom_checker():
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    user_text = request.json.get("text", "")
+    user_text = request.json.get("text", "").strip()
     if not user_text:
         return jsonify({"reply": "⚠️ No input received."}), 400
 
-    try:
-        HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
-        HF_TOKEN = "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"
-        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-        payload = {"inputs": user_text}
-        response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=30)
-
-        if response.status_code != 200:
-            return jsonify({"reply": f"⚠️ API error: {response.text}"}), 500
-
-        data = response.json()
-        reply = data[0]["generated_text"] if isinstance(data, list) and data else data.get("generated_text", "⚠️ No response from model.")
-        return jsonify({"reply": reply})
-
-    except Exception as e:
-        return jsonify({"reply": f"⚠️ Error: {str(e)}"}), 500
+    set_input_mode("manual")
+    reply = get_chatbot_reply(user_input=user_text)
+    return jsonify({"reply": reply})
 
 if __name__ == "__main__":
-
     app.run(debug=True)
